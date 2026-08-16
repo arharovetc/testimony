@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7d9e3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Какой у тебя внутренний вайб?</title>
+<meta name="description" content="Маленький тест на 12 вопросов. Узнай свой вайб.">
+<meta property="og:title" content="Какой у тебя внутренний вайб?">
+<meta property="og:description" content="12 вопросов, 2 минуты. Проверим?">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --card:#fffaf7;
+    --ink:#3a2a42;
+    --muted:#8d7a97;
+    --accent:#ff7a9c;
+    --accent2:#8b6bff;
+    --line:#f2e6ee;
+    --shadow:0 18px 40px -18px rgba(90,50,90,.35);
+    --r:22px;
+  }
+
+  html{-webkit-text-size-adjust:100%}
+
+  body{
+    min-height:100dvh;
+    font:400 17px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    color:var(--ink);
+    background:#f6dfe6;
+    background-image:
+      radial-gradient(120% 80% at 10% 0%, #ffd9c7 0%, transparent 60%),
+      radial-gradient(100% 70% at 100% 10%, #e2d2ff 0%, transparent 62%),
+      radial-gradient(120% 90% at 50% 100%, #c9e7ff 0%, transparent 70%);
+    background-attachment:fixed;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior-y:none;
+  }
+
+  #app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    padding:
+      max(18px, env(safe-area-inset-top)) 18px
+      max(22px, env(safe-area-inset-bottom)) 18px;
+  }
+
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.on{display:flex;animation:in .38s cubic-bezier(.2,.7,.3,1) both}
+  @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* ---------- intro ---------- */
+  #intro{justify-content:center;text-align:center;gap:20px;padding:24px 0}
+
+  .kicker{
+    font-size:13px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;
+  }
+  h1{
+    font:700 clamp(30px,9vw,40px)/1.12 -apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;
+    letter-spacing:-.02em;
+  }
+  h1 em{
+    font-style:normal;
+    background:linear-gradient(96deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .lead{color:var(--muted);font-size:16px;max-width:34ch;margin:0 auto}
+
+  .polaroid{
+    width:min(230px,62vw);margin:4px auto;padding:11px 11px 34px;
+    background:#fff;border-radius:8px;box-shadow:var(--shadow);
+    transform:rotate(-3deg);position:relative;
+  }
+  .polaroid:nth-of-type(even){transform:rotate(2.5deg)}
+  .polaroid img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:3px;display:block}
+  .polaroid .fb{
+    display:none;width:100%;aspect-ratio:3/4;border-radius:3px;
+    background:linear-gradient(150deg,#ffd9c7,#e2d2ff 55%,#c9e7ff);
+    align-items:center;justify-content:center;font-size:44px;
+  }
+  .polaroid.no-img img{display:none}
+  .polaroid.no-img .fb{display:flex}
+  .polaroid .cap{
+    position:absolute;left:0;right:0;bottom:9px;text-align:center;
+    font-size:13px;color:#b3a2bc;
+  }
+
+  .btn{
+    -webkit-appearance:none;appearance:none;border:0;
+    display:block;width:100%;min-height:58px;
+    border-radius:18px;
+    background:linear-gradient(96deg,var(--accent),var(--accent2));
+    color:#fff;font:600 18px/1.2 inherit;
+    box-shadow:0 12px 26px -12px rgba(160,60,140,.75);
+    cursor:pointer;transition:transform .12s ease, filter .12s ease;
+  }
+  .btn:active{transform:scale(.975);filter:saturate(1.15)}
+  .btn.ghost{
+    background:transparent;color:var(--muted);box-shadow:none;
+    border:1.5px solid var(--line);font-weight:500;min-height:52px;
+  }
+  .tiny{font-size:13.5px;color:var(--muted)}
+
+  /* ---------- quiz ---------- */
+  #quiz{gap:18px}
+  .bar-wrap{display:flex;align-items:center;gap:12px;padding-top:4px}
+  .bar{flex:1;height:7px;border-radius:99px;background:#ffffff9c;overflow:hidden}
+  .bar i{
+    display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width .45s cubic-bezier(.2,.7,.3,1);
+  }
+  .count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  .qcard{
+    background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+    padding:24px 20px;display:flex;flex-direction:column;gap:18px;
+  }
+  .qnum{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .qtext{font:600 22px/1.28 -apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;letter-spacing:-.01em}
+
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{
+    -webkit-appearance:none;appearance:none;
+    text-align:left;width:100%;min-height:56px;
+    padding:15px 17px;border-radius:16px;
+    border:1.5px solid var(--line);background:#fff;
+    color:var(--ink);font:400 16.5px/1.35 inherit;cursor:pointer;
+    transition:transform .12s ease,border-color .15s ease,background .15s ease;
+  }
+  .opt:active{transform:scale(.985)}
+  .opt.picked{border-color:var(--accent);background:#fff1f5}
+
+  .backrow{display:flex;justify-content:center}
+  .back{
+    background:none;border:0;color:var(--muted);font:400 15px inherit;
+    padding:10px 16px;cursor:pointer;
+  }
+
+  /* ---------- loading ---------- */
+  #load{justify-content:center;align-items:center;text-align:center;gap:26px}
+  .spin{
+    width:74px;height:74px;border-radius:50%;
+    background:conic-gradient(from 0deg,var(--accent),var(--accent2),var(--accent));
+    -webkit-mask:radial-gradient(circle 27px at 50% 50%,transparent 98%,#000);
+    mask:radial-gradient(circle 27px at 50% 50%,transparent 98%,#000);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(1turn)}}
+  #loadTxt{font-size:17px;color:var(--muted);min-height:1.5em}
+
+  /* ---------- result ---------- */
+  #result{gap:16px;padding-bottom:8px}
+  .rcard{
+    background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+    padding:26px 22px;text-align:center;position:relative;overflow:hidden;
+  }
+  .rcard::before{
+    content:"";position:absolute;inset:-40% -10% auto -10%;height:70%;
+    background:radial-gradient(60% 100% at 50% 0%,#ffe3ee,transparent 70%);
+    pointer-events:none;
+  }
+  .rtop{position:relative;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .remoji{font-size:56px;line-height:1;margin:10px 0 4px;display:block}
+  .rname{
+    font:700 clamp(26px,7.6vw,34px)/1.15 -apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;
+    letter-spacing:-.02em;position:relative;
+  }
+  .rdesc{margin-top:14px;font-size:16.5px;color:#5c4a66;text-align:left}
+  .rpower{
+    margin-top:16px;padding:14px 16px;border-radius:14px;
+    background:#f7f0fb;text-align:left;font-size:15.5px;color:#5c4a66;
+  }
+  .rpower b{display:block;font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent2);margin-bottom:5px}
+
+  .code{
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    margin-top:18px;padding:13px;border-radius:14px;
+    border:1.5px dashed #e8d7e6;background:#fff;
+    font:600 17px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.06em;-webkit-user-select:all;user-select:all;
+  }
+  .code span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:inherit;font-weight:600}
+
+  .actions{display:flex;flex-direction:column;gap:10px}
+  .note{text-align:center}
+  #toast{
+    position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));
+    transform:translate(-50%,20px);
+    background:#3a2a42;color:#fff;padding:12px 20px;border-radius:99px;
+    font-size:15px;opacity:0;pointer-events:none;transition:.28s ease;z-index:9;
+  }
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== INTRO ===== -->
+  <section id="intro" class="screen on">
+    <div class="kicker">мини-тест</div>
+    <h1>Какой у тебя <em>внутренний вайб</em>?</h1>
+
+    <div class="polaroid" data-fb="🌷">
+      <img src="photos/p1.jpg" alt="" onerror="this.parentElement.classList.add('no-img')">
+      <div class="fb">🌷</div>
+      <div class="cap">✧ ✧ ✧</div>
+    </div>
+
+    <p class="lead">12 вопросов, две минуты и немного странных ситуаций. В конце — твой вайб и его код.</p>
+    <button class="btn" id="start">Начать →</button>
+    <p class="tiny">Обещаю: это не реклама и не развод 😄</p>
+  </section>
+
+  <!-- ===== QUIZ ===== -->
+  <section id="quiz" class="screen">
+    <div class="bar-wrap">
+      <div class="bar"><i id="fill"></i></div>
+      <div class="count" id="count">1 / 12</div>
+    </div>
+
+    <div class="qcard">
+      <div class="qnum" id="qnum">Вопрос 1</div>
+      <div class="qtext" id="qtext"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+
+    <div class="backrow"><button class="back" id="back">← назад</button></div>
+  </section>
+
+  <!-- ===== LOADING ===== -->
+  <section id="load" class="screen">
+    <div class="spin"></div>
+    <div id="loadTxt">Считаем твои вайбы…</div>
+  </section>
+
+  <!-- ===== RESULT ===== -->
+  <section id="result" class="screen">
+    <div class="rcard">
+      <div class="rtop">твой вайб</div>
+      <span class="remoji" id="remoji">✨</span>
+      <div class="rname" id="rname"></div>
+      <p class="rdesc" id="rdesc"></p>
+      <div class="rpower"><b>Твоя суперсила</b><span id="rpower"></span></div>
+      <div class="code"><span>код</span><em id="rcode" style="font-style:normal"></em></div>
+    </div>
+
+    <div class="polaroid" data-fb="💛">
+      <img src="photos/p2.jpg" alt="" onerror="this.parentElement.classList.add('no-img')">
+      <div class="fb">💛</div>
+      <div class="cap">✧ ✧ ✧</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="share">Отправить результат 💌</button>
+      <button class="btn ghost" id="again">Пройти заново</button>
+    </div>
+    <p class="tiny note">Не открывается? Просто скинь скриншот — там всё есть 🙂</p>
+  </section>
+
+</div>
+<div id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* Три скрытые шкалы: x / y / z */
+  var Q = [
+    { q:"Утро. Что ты делаешь первым делом после будильника?", o:[
+      {t:"Лежу и залипаю в телефон ещё сорок минут", y:1},
+      {t:"Сразу смотрю, что сегодня интересного", x:1},
+      {t:"Иду решать, что надеть", z:1},
+      {t:"Умираю. Просто тихо умираю", n:1}
+    ]},
+
+    { q:"Ты проснулась, а вместо рук — крабовые клешни. Твои действия?", o:[
+      {t:"Открываю бизнес по нарезке салатов"},
+      {t:"Клац-клац. Иду пугать соседей"},
+      {t:"Пишу маме. Она разберётся"},
+      {t:"Ничего нового, я и так так живу"}
+    ]},
+
+    { q:"Чего тебе не хватало последние пару месяцев?", o:[
+      {t:"Сна и тишины", y:3},
+      {t:"Новых мест и впечатлений", x:3},
+      {t:"Ощущения, что я себе нравлюсь", z:3},
+      {t:"Денег, но это база", z:1}
+    ]},
+
+    { q:"Что ты чаще всего откладываешь на «потом»?", o:[
+      {t:"Лечь спать вовремя", y:2},
+      {t:"Разобрать шкаф", z:2},
+      {t:"Куда-нибудь спонтанно выбраться", x:2},
+      {t:"Ответить в чате. Я отвечу. Когда-нибудь", n:1}
+    ]},
+
+    { q:"Выбери максимально бесполезную суперсилу", o:[
+      {t:"Всегда знать время, но с ошибкой в три минуты"},
+      {t:"Дышать под водой ровно двадцать секунд"},
+      {t:"Превращать любой суп в другой суп"},
+      {t:"Мгновенно находить второй носок"}
+    ]},
+
+    { q:"Идеальный вечер пятницы — это…", o:[
+      {t:"Куда-то поехать, даже если потом не выспимся", x:3},
+      {t:"Ванна, свечка, никого не трогаю", y:3},
+      {t:"Собраться, накраситься и просто хорошо выглядеть", z:3},
+      {t:"Включить сериал и уснуть на второй серии", n:1}
+    ]},
+
+    { q:"Что бесит сильнее?", o:[
+      {t:"Неделя прошла, а вспомнить нечего", x:3},
+      {t:"Тело устало, а голова говорит «надо»", y:3},
+      {t:"Открываешь шкаф — и надеть нечего", z:3},
+      {t:"Чай остыл, пока я его «сейчас допью»", n:1}
+    ]},
+
+    { q:"У тебя дома неделю живёт пингвин. Он…", o:[
+      {t:"Спит на моей стороне кровати"},
+      {t:"Смотрит сериалы и осуждает мой выбор"},
+      {t:"Ест всё, кроме того, что я приготовила"},
+      {t:"Уже съехал. Не сошлись характерами"}
+    ]},
+
+    { q:"Волшебная кнопка. Одно нажатие — и…", o:[
+      {t:"Ты просыпаешься полностью отдохнувшей. Вообще без усталости", y:3},
+      {t:"Ты оказываешься в новом городе на один день", x:3},
+      {t:"Тебе идёт абсолютно любая вещь", z:3},
+      {t:"Все чаты прочитаны и всем отвечено", n:1}
+    ]},
+
+    { q:"Какой комплимент приятнее услышать?", o:[
+      {t:"«Ты потрясающе выглядишь»", z:3},
+      {t:"«С тобой невероятно интересно»", x:3},
+      {t:"«Ты выглядишь такой отдохнувшей и спокойной»", y:3},
+      {t:"«Ты пахнешь как свежее печенье»", n:1}
+    ]},
+
+    { q:"Что из этого звучит как настоящий отдых?", o:[
+      {t:"Дорога, музыка, окно", x:2},
+      {t:"Тишина, плед, ноль дел", y:2},
+      {t:"Примерочная и очень хорошее зеркало", z:2},
+      {t:"Отель, где не ловит интернет. Совсем", n:1}
+    ]},
+
+    { q:"Последний. Что бы ты выбрала вслепую?", o:[
+      {t:"Конверт, который нельзя открывать до вечера пятницы", x:2},
+      {t:"Коробку, в которой что-то очень красивое", z:2},
+      {t:"День, в котором никто от тебя ничего не хочет", y:2},
+      {t:"Кота. Всегда кота", n:1}
+    ]}
+  ];
+
+  var R = {
+    xy:{e:"🌧️", n:"Тёплый ливень",
+      d:"Ты тёплая и живая. Тебе важно чувствовать, что жизнь происходит — но без режима вечной гонки. Ты умеешь превратить обычный вечер в маленькое событие и при этом честно ценишь моменты, когда можно никуда не бежать.",
+      p:"Делать день особенным вообще без повода."},
+    xz:{e:"⛈️", n:"Летняя гроза",
+      d:"В тебе много энергии и характера. Там, где всё предсказуемо, тебе быстро становится скучно, и ты совсем не боишься быть заметной. Ты из тех, кто заходит в комнату — и комната меняется.",
+      p:"Превращать обычный день в историю, которую потом пересказывают."},
+    yx:{e:"🌫️", n:"Утренний туман",
+      d:"Ты глубокая и спокойная — но совсем не скучная, просто твоя энергия работает тише. Тебе нужно время, чтобы раскрыться, и тогда рядом с тобой становится очень тепло и очень интересно.",
+      p:"Замечать то, что все остальные пролистывают."},
+    yz:{e:"❄️", n:"Первый снег",
+      d:"Тихая — и при этом крайне заметная. Ты одинаково сильно ценишь красоту в мелочах и своё личное пространство. Тебя хочется рассматривать и совсем не хочется торопить.",
+      p:"Собирать уют буквально из ничего."},
+    zx:{e:"🌌", n:"Северное сияние",
+      d:"Ты яркая и ни на кого не похожая. Чувство стиля у тебя не только в вещах, но и в том, как ты вообще живёшь и разговариваешь. Тебя невозможно с кем-то перепутать.",
+      p:"Быть собой настолько уверенно, что это заражает других."},
+    zy:{e:"🌇", n:"Золотой закат",
+      d:"Мягкая, красивая, с ровным внутренним светом. Ты умеешь замедляться — и делаешь это очень эстетично. Рядом с тобой хочется остановиться и просто посмотреть.",
+      p:"Превращать обычное в красивое, ничего для этого не делая."}
+  };
+
+  var $ = function(id){ return document.getElementById(id); };
+  var i = 0, ans = [], res = null;
+
+  function show(id){
+    var s = document.querySelectorAll(".screen");
+    for (var k=0;k<s.length;k++) s[k].classList.remove("on");
+    $(id).classList.add("on");
+    window.scrollTo(0,0);
+  }
+
+  function render(){
+    var q = Q[i];
+    $("qnum").textContent = "Вопрос " + (i+1);
+    $("qtext").textContent = q.q;
+    $("count").textContent = (i+1) + " / " + Q.length;
+    $("fill").style.width = ((i)/Q.length*100) + "%";
+    $("back").style.visibility = i === 0 ? "hidden" : "visible";
+
+    var box = $("opts");
+    box.innerHTML = "";
+    q.o.forEach(function(o, idx){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "opt" + (ans[i] === idx ? " picked" : "");
+      b.textContent = o.t;
+      b.addEventListener("click", function(){ pick(idx, b); });
+      box.appendChild(b);
+    });
+  }
+
+  function pick(idx, el){
+    ans[i] = idx;
+    var all = $("opts").children;
+    for (var k=0;k<all.length;k++) all[k].classList.remove("picked");
+    el.classList.add("picked");
+    if (window.navigator.vibrate) window.navigator.vibrate(8);
+
+    setTimeout(function(){
+      if (i < Q.length - 1){ i++; render(); $("quiz").classList.remove("on");
+        void $("quiz").offsetWidth; $("quiz").classList.add("on"); }
+      else { $("fill").style.width = "100%"; finish(); }
+    }, 190);
+  }
+
+  function score(){
+    var v = {x:0, y:0, z:0};
+    ans.forEach(function(a, qi){
+      var o = Q[qi].o[a];
+      if (!o) return;
+      v.x += o.x || 0; v.y += o.y || 0; v.z += o.z || 0;
+    });
+    var t = v.x + v.y + v.z;
+    var p;
+    if (t <= 0) p = {x:34, y:33, z:33};
+    else {
+      p = { x:Math.round(v.x/t*100), y:Math.round(v.y/t*100), z:Math.round(v.z/t*100) };
+      var diff = 100 - (p.x + p.y + p.z);
+      var top = (p.x >= p.y && p.x >= p.z) ? "x" : (p.y >= p.z ? "y" : "z");
+      p[top] += diff;
+    }
+    var order = ["x","y","z"].sort(function(a,b){ return p[b] - p[a]; });
+    return { p:p, key:order[0] + order[1] };
+  }
+
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+
+  function finish(){
+    res = score();
+    show("load");
+
+    var lines = ["Считаем твои вайбы…","Сверяемся с луной 🌙","Уточняем у пингвина…","Почти готово ✨"];
+    var n = 0;
+    $("loadTxt").textContent = lines[0];
+    var tick = setInterval(function(){
+      n++;
+      if (n < lines.length) $("loadTxt").textContent = lines[n];
+    }, 620);
+
+    setTimeout(function(){
+      clearInterval(tick);
+      var r = R[res.key] || R.xy;
+      $("remoji").textContent = r.e;
+      $("rname").textContent = r.n;
+      $("rdesc").textContent = r.d;
+      $("rpower").textContent = r.p;
+      $("rcode").textContent = "VB-" + pad(res.p.x) + "-" + pad(res.p.y) + "-" + pad(res.p.z);
+      show("result");
+    }, 2600);
+  }
+
+  function shareText(){
+    var r = R[res.key] || R.xy;
+    return "Мой вайб — «" + r.n + "» " + r.e + "\nКод: " + $("rcode").textContent;
+  }
+
+  function toast(msg){
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("on");
+    setTimeout(function(){ t.classList.remove("on"); }, 2200);
+  }
+
+  $("start").addEventListener("click", function(){ show("quiz"); render(); });
+
+  $("back").addEventListener("click", function(){
+    if (i > 0){ i--; render(); }
+  });
+
+  $("again").addEventListener("click", function(){
+    i = 0; ans = []; res = null;
+    show("intro");
+  });
+
+  $("share").addEventListener("click", function(){
+    var txt = shareText();
+    if (navigator.share){
+      navigator.share({ title:"Мой вайб", text:txt }).catch(function(){});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){
+        toast("Скопировано — вставляй в чат 💌");
+      }).catch(function(){ toast("Сделай скриншот 🙂"); });
+      return;
+    }
+    toast("Сделай скриншот 🙂");
+  });
+})();
+</script>
+</body>
+</html>
