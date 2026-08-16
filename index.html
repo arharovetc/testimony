@@ -30,16 +30,27 @@
     font:400 17px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
     color:var(--ink);
     background:#f6dfe6;
-    background-image:
-      radial-gradient(120% 80% at 10% 0%, #ffd9c7 0%, transparent 60%),
-      radial-gradient(100% 70% at 100% 10%, #e2d2ff 0%, transparent 62%),
-      radial-gradient(120% 90% at 50% 100%, #c9e7ff 0%, transparent 70%);
-    background-attachment:fixed;
     -webkit-tap-highlight-color:transparent;
     overscroll-behavior-y:none;
   }
 
+  /* Фон отдельным закреплённым слоем: background-attachment:fixed
+     на iOS Safari ведёт себя непредсказуемо. */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background-color:#f6dfe6;
+    background-image:
+      radial-gradient(120% 80% at 10% 0%, #ffd9c7 0%, transparent 60%),
+      radial-gradient(100% 70% at 100% 10%, #e2d2ff 0%, transparent 62%),
+      radial-gradient(120% 90% at 50% 100%, #c9e7ff 0%, transparent 70%);
+  }
+
   #app{
+    position:relative;
+    z-index:1;
     max-width:520px;
     margin:0 auto;
     min-height:100dvh;
@@ -77,7 +88,8 @@
     background:#fff;border-radius:8px;box-shadow:var(--shadow);
     transform:rotate(-3deg);position:relative;
   }
-  .polaroid:nth-of-type(even){transform:rotate(2.5deg)}
+  .polaroid--sm{width:min(148px,40vw);padding:8px 8px 26px;transform:rotate(2.5deg)}
+  .polaroid--sm .cap{bottom:7px;font-size:11px}
   .polaroid img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:3px;display:block}
   .polaroid .fb{
     display:none;width:100%;aspect-ratio:3/4;border-radius:3px;
@@ -109,6 +121,7 @@
 
   /* ---------- quiz ---------- */
   #quiz{gap:18px}
+  .qbody{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px}
   .bar-wrap{display:flex;align-items:center;gap:12px;padding-top:4px}
   .bar{flex:1;height:7px;border-radius:99px;background:#ffffff9c;overflow:hidden}
   .bar i{
@@ -225,13 +238,15 @@
       <div class="count" id="count">1 / 12</div>
     </div>
 
-    <div class="qcard">
-      <div class="qnum" id="qnum">Вопрос 1</div>
-      <div class="qtext" id="qtext"></div>
-      <div class="opts" id="opts"></div>
-    </div>
+    <div class="qbody">
+      <div class="qcard">
+        <div class="qnum" id="qnum">Вопрос 1</div>
+        <div class="qtext" id="qtext"></div>
+        <div class="opts" id="opts"></div>
+      </div>
 
-    <div class="backrow"><button class="back" id="back">← назад</button></div>
+      <div class="backrow"><button class="back" id="back">← назад</button></div>
+    </div>
   </section>
 
   <!-- ===== LOADING ===== -->
@@ -251,7 +266,7 @@
       <div class="code"><span>код</span><em id="rcode" style="font-style:normal"></em></div>
     </div>
 
-    <div class="polaroid" data-fb="💛">
+    <div class="polaroid polaroid--sm" data-fb="💛">
       <img src="photos/p2.jpg" alt="" onerror="this.parentElement.classList.add('no-img')">
       <div class="fb">💛</div>
       <div class="cap">✧ ✧ ✧</div>
@@ -423,22 +438,23 @@
     }, 190);
   }
 
+  /* Базовый вес на каждую шкалу: не даёт одному случайному очку
+     превратиться в «100 %», когда на вопросы отвечали наугад. */
+  var BASE = 5;
+
   function score(){
-    var v = {x:0, y:0, z:0};
+    var v = {x:BASE, y:BASE, z:BASE};
     ans.forEach(function(a, qi){
       var o = Q[qi].o[a];
       if (!o) return;
       v.x += o.x || 0; v.y += o.y || 0; v.z += o.z || 0;
     });
     var t = v.x + v.y + v.z;
-    var p;
-    if (t <= 0) p = {x:34, y:33, z:33};
-    else {
-      p = { x:Math.round(v.x/t*100), y:Math.round(v.y/t*100), z:Math.round(v.z/t*100) };
-      var diff = 100 - (p.x + p.y + p.z);
-      var top = (p.x >= p.y && p.x >= p.z) ? "x" : (p.y >= p.z ? "y" : "z");
-      p[top] += diff;
-    }
+    var p = { x:Math.round(v.x/t*100), y:Math.round(v.y/t*100), z:Math.round(v.z/t*100) };
+    var diff = 100 - (p.x + p.y + p.z);
+    var top = (p.x >= p.y && p.x >= p.z) ? "x" : (p.y >= p.z ? "y" : "z");
+    p[top] += diff;
+
     var order = ["x","y","z"].sort(function(a,b){ return p[b] - p[a]; });
     return { p:p, key:order[0] + order[1] };
   }
